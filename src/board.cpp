@@ -39,25 +39,14 @@ public:
         {
             char c = buffer[i];
             if (c == '.') {
-#if 0
-                printf("      i %u           value: %c \n", index, c);
-#endif
                 index++;
                 continue;
             } else if ((c >= '1') && (c <= '9'))  {
                 uint32_t x = index % (SIZE_X * 3);
                 uint32_t y = index / (SIZE_X * 3);
-#if 0
-                printf("      i %u x %u y %u value: %u \n", index, x, y, c-48);
-#endif
                 Cell *cell = at(x, y);
                 cell->Set(static_cast<uint32_t>(c) - VALUE_0);
                 index++;
-#if 0
-            } else {
-                printf("skip: %c index: %u \n", c, index);
-
-#endif
             }
         }
     }
@@ -107,6 +96,10 @@ Board::Board(const char *filename)
 {
     mPriv = std::make_unique<Private>();
     auto fs = std::ifstream(filename, std::ios::in | std::ios::binary);
+    if (!fs) {
+        std::cout << "Error: file couldn't be opened\n";
+        throw std::exception();
+    }
 
     std::string buffer;
     std::string line;
