@@ -34,12 +34,10 @@ int main(int argc, const char *argv[]) {
             run |= s4.run(&board);
         } while (run && limit > 0);
 
-        board.print(true);
-        printf("\n");
         board.print();
     }
     catch(...) {
-
+        std::cout << "Exception caught, abort.\n";
     }
     return 0;
 }

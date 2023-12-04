@@ -1,6 +1,8 @@
 #include <gtest/gtest.h>
 #include <fstream>
 #include "board.hpp"
+#include "cell.hpp"
+#include "ninth.hpp"
 #include "strategy.hpp"
 
 using std::ifstream;

@@ -1,6 +1,8 @@
 
 #include "strategy.hpp"
 #include "board.hpp"
+#include "cell.hpp"
+#include "ninth.hpp"
 #include <exception>
 #include <set>
 #include <vector>

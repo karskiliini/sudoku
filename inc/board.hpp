@@ -1,9 +1,11 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
+#include "coord.hpp"
 #include <memory>
-#include "ninth.hpp"
-#include "cell.hpp"
+
+class Ninth;
+class Cell;
 
 class Board {
 public:

@@ -1,9 +1,10 @@
 #ifndef NINTH_HPP
 #define NINTH_HPP
 
-#include <memory>
-#include "cell.hpp"
 #include "coord.hpp"
+#include <memory>
+
+class Cell;
 
 class Ninth {
 public:

@@ -20,7 +20,6 @@ public:
 };
 
 Ninth::Ninth(const Coord &coordinate) {
-    // printf("Ninth: x: %u y: %u\n", coordinate.x, coordinate.y);
     mPriv = std::make_unique<Private>(coordinate);
 }
 

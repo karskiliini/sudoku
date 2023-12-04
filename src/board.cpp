@@ -79,7 +79,7 @@ public:
         }
 
         printf("board::at() nullptr\n");
-        return nullptr;
+        throw std::exception();
     }
 
     std::vector<unique_ptr<Ninth>> ninths;

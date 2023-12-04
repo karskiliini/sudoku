@@ -1,8 +1,8 @@
 #ifndef CELL_HPP
 #define CELL_HPP
 
-#include <memory>
 #include "coord.hpp"
+#include <memory>
 
 class Cell {
 public:

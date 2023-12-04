@@ -71,12 +71,11 @@ bool Cell::RemoveAllBut(uint32_t value)
         if (value == i) continue;
         bool ret2 = Remove(i);
         ret = ret || ret2;
-#if 1
+#if 0
         if (ret2) {
             printf("Cell::RemoveAllBut(x: %u y: %u) Value %u\n", mPriv->coord.x, mPriv->coord.y, i);
         }
 #endif
-
     }
     return ret;
 }
