@@ -6,6 +6,7 @@
 #include <exception>
 #include <set>
 #include <vector>
+#include <cstdio>
 
 using std::vector;
 
