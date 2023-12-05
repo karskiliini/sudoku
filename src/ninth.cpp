@@ -1,7 +1,7 @@
 #include "ninth.hpp"
-
-#include <vector>
 #include "cell.hpp"
+#include <vector>
+#include <cstdio>
 
 using std::vector;
 
