@@ -3,6 +3,7 @@
 
 #include "coord.hpp"
 #include <memory>
+#include <vector>
 
 class Cell {
 public:
