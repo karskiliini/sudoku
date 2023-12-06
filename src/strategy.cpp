@@ -504,18 +504,15 @@ bool BoxLinesStrategy::run(Board *board) {
             for (uint32_t check = 1; check <= 9; ++check) {
                 DoublesOnLine found1;
                 DoublesOnLine found2;
-                DoublesOnLine found3;
 
-                for (uint32_t x = 0;
-                     x < (9 - (COUNT - 1)) && (found3.found == false); ++x) {
+                for (uint32_t x = 0; x < (9 - (COUNT - 1)); ++x) {
                     auto col1 = board->getCol(x);
                     // printf("check x %u \n", x);
 
                     // look for double numbers
                     found1 = findDoubles(col1, check, x);
                     if (found1.found) {
-                        for (uint32_t x2 = x + 1;
-                             x2 < (9 - (COUNT - 2)) && (found3.found == false);
+                        for (uint32_t x2 = x + 1; x2 < (9 - (COUNT - 2));
                              ++x2) {
                             auto col2 = board->getCol(x2);
                             found2 = findDoubles(col2, check, x2);
@@ -531,8 +528,7 @@ bool BoxLinesStrategy::run(Board *board) {
                        found1.index2, found2.value, found1.index1,
                        found1.index2, found2.row_or_col);
 #endif
-                                if (found1.found && found2.found &&
-                                    !found3.found) {
+                                if (found1.found && found2.found) {
                                     for (uint32_t x = 0; x < 9; ++x) {
                                         if (x != found1.row_or_col &&
                                             x != found2.row_or_col) {
@@ -560,17 +556,14 @@ bool BoxLinesStrategy::run(Board *board) {
             for (uint32_t check = 1; check <= 9; ++check) {
                 DoublesOnLine found1;
                 DoublesOnLine found2;
-                DoublesOnLine found3;
 
-                for (uint32_t y = 0;
-                     y < (9 - (COUNT - 1)) && (found3.found == false); ++y) {
+                for (uint32_t y = 0; y < (9 - (COUNT - 1)); ++y) {
                     auto row1 = board->getRow(y);
 
                     // look for double numbers
                     found1 = findDoubles(row1, check, y);
                     if (found1.found) {
-                        for (uint32_t y2 = y + 1;
-                             y2 < (9 - (COUNT - 2)) && (found3.found == false);
+                        for (uint32_t y2 = y + 1; y2 < (9 - (COUNT - 2));
                              ++y2) {
                             auto row2 = board->getRow(y2);
                             found2 = findDoubles(row2, check, y2);
@@ -586,8 +579,7 @@ bool BoxLinesStrategy::run(Board *board) {
                        found1.index1, found1.index2, found1.index1,
                        found1.index2);
 #endif
-                                if (found1.found && found2.found &&
-                                    !found3.found) {
+                                if (found1.found && found2.found) {
                                     for (uint32_t y = 0; y < 9; ++y) {
                                         if (y != found1.row_or_col &&
                                             y != found2.row_or_col) {
@@ -611,6 +603,192 @@ bool BoxLinesStrategy::run(Board *board) {
             }
         }
         modified |= run;
+    } while (run);
+
+    return modified;
+}
+
+struct ValuesOnLine {
+    bool found = false;
+    uint32_t index1;
+    uint32_t value1;
+    uint32_t index2;
+    uint32_t value2;
+    uint32_t row_or_col;
+};
+
+ValuesOnLine findValuesOnLine(const vector<Cell *> &line, uint32_t value1,
+                              uint32_t value2, const uint32_t row_or_col) {
+    ValuesOnLine ret;
+    uint32_t found1;
+    uint32_t found2;
+
+    for (uint32_t index1 = 0; index1 < line.size() - 1; ++index1) {
+        if ((line[index1]->hasValue(value1) ||
+             line[index1]->hasValue(value2)) &&
+            (line[index1]->count() > 1)) {
+            found1 = index1;
+            const bool foundValue1 = line[index1]->hasValue(value1);
+            const uint32_t check = (foundValue1) ? value2 : value1;
+            ret.value1 = (foundValue1) ? value1 : value2;
+
+            for (uint32_t index2 = index1 + 1; index2 < line.size(); ++index2) {
+                if (line[index2]->hasValue(check) &&
+                    (line[index2]->count() > 1)) {
+                    found2 = index2;
+                    ret.value2 = check;
+
+                    for (uint32_t index3 = index2 + 1; index3 < line.size();
+                         ++index3) {
+                        if (line[index3]->hasValue(value1) ||
+                            line[index3]->hasValue(value2)) {
+                            return ret;
+                        }
+                    }
+                    ret.found = true;
+                    ret.index1 = found1;
+                    ret.index2 = found2;
+                    ret.row_or_col = row_or_col;
+#if 0
+                    printf(
+                        "findValuesOnLine: found: true, index1: %u index2: %u "
+                        "value1 %u, value2 %u "
+                        "row_or_col %u\n",
+                        found1, found2, value1, value2, row_or_col);
+#endif
+                    return ret;
+                }
+            }
+        }
+    }
+    return ret;
+}
+
+bool BoxLinesTwoValuesStrategy::run(Board *board) {
+    constexpr uint32_t COUNT = 2;
+
+    bool modified = false;
+    bool run;
+    do {
+        run = false;
+
+        for (uint32_t check1 = 1; check1 <= 9; ++check1) {
+            for (uint32_t check2 = 1; check2 <= 9; ++check2) {
+                ValuesOnLine found1;
+                ValuesOnLine found2;
+
+                for (uint32_t x = 0; x < (9 - (COUNT - 1)); ++x) {
+                    auto col1 = board->getCol(x);
+
+                    // look for double numbers
+                    found1 = findValuesOnLine(col1, check1, check2, x);
+                    if (found1.found) {
+                        for (uint32_t x2 = x + 1; x2 < (9 - (COUNT - 2));
+                             ++x2) {
+                            auto col2 = board->getCol(x2);
+                            found2 = findValuesOnLine(col2, check1, check2, x2);
+                            if (found2.found &&
+                                (found1.index1 == found2.index1) &&
+                                (found1.index2 == found2.index2)) {
+#if 0
+                                printf(
+                                    "x: %u value1: %u index1 %u value2: %u "
+                                    "index2 %u x2: %u "
+                                    "value1: %u index1 "
+                                    "%u value2: %u index2 %u \n",
+                                    found1.row_or_col, found1.value1,
+                                    found1.index1, found1.value2, found1.index2,
+                                    found2.row_or_col, found2.value1,
+                                    found1.index1, found2.value2,
+                                    found1.index2);
+#endif
+                                if (found1.found && found2.found) {
+                                    for (uint32_t x3 = 0; x3 < 9; ++x3) {
+                                        if (x3 != found1.row_or_col &&
+                                            x3 != found2.row_or_col) {
+                                            assert(found1.row_or_col !=
+                                                   found2.row_or_col);
+                                            assert(found1.index1 ==
+                                                   found2.index1);
+                                            assert(found1.index2 ==
+                                                   found2.index2);
+                                            run |= board->at(x3, found1.index1)
+                                                       ->Remove(found1.value1);
+                                            run |= board->at(x3, found1.index2)
+                                                       ->Remove(found1.value1);
+                                            run |= board->at(x3, found1.index1)
+                                                       ->Remove(found1.value2);
+                                            run |= board->at(x3, found1.index2)
+                                                       ->Remove(found1.value2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        for (uint32_t check1 = 1; check1 <= 9; ++check1) {
+            for (uint32_t check2 = 1; check2 <= 9; ++check2) {
+                ValuesOnLine found1;
+                ValuesOnLine found2;
+
+                for (uint32_t y = 0; y < (9 - (COUNT - 1)); ++y) {
+                    auto row1 = board->getRow(y);
+
+                    // look for double numbers
+                    found1 = findValuesOnLine(row1, check1, check2, y);
+                    if (found1.found) {
+                        for (uint32_t y2 = y + 1; y2 < (9 - (COUNT - 2));
+                             ++y2) {
+                            auto row2 = board->getCol(y2);
+                            found2 = findValuesOnLine(row2, check1, check2, y2);
+                            if (found2.found &&
+                                (found1.index1 == found2.index1) &&
+                                (found1.index2 == found2.index2)) {
+#if 0
+                                printf(
+                                    "x: %u value1: %u index1 %u value2: %u "
+                                    "index2 %u x2: %u "
+                                    "value1: %u index1 "
+                                    "%u value2: %u index2 %u \n",
+                                    found1.row_or_col, found1.value1,
+                                    found1.index1, found1.value2, found1.index2,
+                                    found2.row_or_col, found2.value1,
+                                    found1.index1, found2.value2,
+                                    found1.index2);
+#endif
+                                if (found1.found && found2.found) {
+                                    for (uint32_t y3 = 0; y3 < 9; ++y3) {
+                                        if (y3 != found1.row_or_col &&
+                                            y3 != found2.row_or_col) {
+                                            assert(found1.row_or_col !=
+                                                   found2.row_or_col);
+                                            assert(found1.index1 ==
+                                                   found2.index1);
+                                            assert(found1.index2 ==
+                                                   found2.index2);
+                                            run |= board->at(y3, found1.index1)
+                                                       ->Remove(found1.value1);
+                                            run |= board->at(y3, found1.index2)
+                                                       ->Remove(found1.value1);
+                                            run |= board->at(y3, found1.index1)
+                                                       ->Remove(found1.value2);
+                                            run |= board->at(y3, found1.index2)
+                                                       ->Remove(found1.value2);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        modified |= run;
+
     } while (run);
 
     return modified;

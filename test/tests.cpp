@@ -544,6 +544,90 @@ TEST_F(SudokuTest, Test013_2) {
 #endif
 }
 
+TEST_F(SudokuTest, Test013_3) {
+#ifdef CAP
+    testing::internal::CaptureStdout();
+#endif
+
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.013.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DuplicatesStrategy s;
+        run = s.run(&board) || run;
+        OnlyOneStrategy s2;
+        run = s2.run(&board) || run;
+        OnlyOnALineStrategy s3;
+        run = s3.run(&board) || run;
+        DoubleLinesStrategy s4;
+        run |= s4.run(&board);
+        BoxLinesStrategy s5;
+        run |= s5.run(&board);
+    } while (run && limit > 0);
+
+    board.print(true);
+    board.print();
+
+#ifdef CAP
+    std::string output = testing::internal::GetCapturedStdout();
+#endif
+
+    string expectedOutput = get_file_contents(outfile.c_str());
+#ifdef CAP
+    ASSERT_EQ(expectedOutput, output);
+#endif
+}
+
+TEST_F(SudokuTest, Test013_4) {
+#ifdef CAP
+    testing::internal::CaptureStdout();
+#endif
+
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.013.4.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DuplicatesStrategy s;
+        run = s.run(&board) || run;
+        OnlyOneStrategy s2;
+        run = s2.run(&board) || run;
+        OnlyOnALineStrategy s3;
+        run = s3.run(&board) || run;
+        DoubleLinesStrategy s4;
+        run |= s4.run(&board);
+        BoxLinesStrategy s5;
+        run |= s5.run(&board);
+        BoxLinesTwoValuesStrategy s6;
+        run |= s6.run(&board);
+    } while (run && limit > 0);
+
+    board.print(true);
+    board.print();
+
+#ifdef CAP
+    std::string output = testing::internal::GetCapturedStdout();
+#endif
+
+    string expectedOutput = get_file_contents(outfile.c_str());
+#ifdef CAP
+    ASSERT_EQ(expectedOutput, output);
+#endif
+}
+
 TEST_F(SudokuTest, Test014) {
 #ifdef CAP
     testing::internal::CaptureStdout();
@@ -960,6 +1044,45 @@ TEST_F(SudokuTest, Test020_2_box_strategy) {
         run = s.run(&board) || run;
         BoxLinesStrategy s5;
         run |= s5.run(&board);
+
+    } while (run && limit > 0);
+
+    board.print(true);
+    printf("\n");
+    board.print();
+
+#ifdef CAP
+    std::string output = testing::internal::GetCapturedStdout();
+#endif
+
+    string expectedOutput = get_file_contents(outfile.c_str());
+#ifdef CAP
+    ASSERT_EQ(expectedOutput, output);
+#endif
+}
+
+TEST_F(SudokuTest, Test021_box_values_strategy) {
+#ifdef CAP
+    testing::internal::CaptureStdout();
+#endif
+
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.020.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.020.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DuplicatesStrategy s;
+        run = s.run(&board) || run;
+        // BoxLinesStrategy s5;
+        // run |= s5.run(&board);
+        BoxLinesTwoValuesStrategy s6;
+        run |= s6.run(&board);
 
     } while (run && limit > 0);
 

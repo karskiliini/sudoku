@@ -61,13 +61,26 @@ class DoubleLinesStrategy : public SudokuStrategy {
 };
 
 /**
- * When a full line needs a number, that number will be the only
- * possible value even if other values are otherwise possible.
+ * When a number is possible on one line in exactly two places
+ * and the same number is possible in the exact same places on
+ * another line, those 2 positions will hold the value on those
+ * lines.
  */
 class BoxLinesStrategy : public SudokuStrategy {
    public:
     BoxLinesStrategy(){};
     virtual ~BoxLinesStrategy(){};
+
+    virtual bool run(Board *board);
+};
+
+/**
+ * Same as BoxLinesStrategy, but with two different numbers.
+ */
+class BoxLinesTwoValuesStrategy : public SudokuStrategy {
+   public:
+    BoxLinesTwoValuesStrategy(){};
+    virtual ~BoxLinesTwoValuesStrategy(){};
 
     virtual bool run(Board *board);
 };
