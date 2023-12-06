@@ -886,3 +886,85 @@ TEST_F(SudokuTest, Test019) {
     ASSERT_EQ(expectedOutput, output);
 #endif
 }
+
+TEST_F(SudokuTest, Test019_2) {
+
+#ifdef CAP
+    testing::internal::CaptureStdout();
+#endif
+
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.018.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.018.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DuplicatesStrategy s;
+        run = s.run(&board) || run;
+        OnlyOneStrategy s2;
+        run = s2.run(&board) || run;
+        OnlyOnALineStrategy s3;
+        run = s3.run(&board) || run;
+        DoubleLinesStrategy s4;
+        run |= s4.run(&board);
+    } while (run && limit > 0);
+
+    board.print(true);
+    printf("\n");
+    board.print();
+
+#ifdef CAP
+    std::string output = testing::internal::GetCapturedStdout();
+#endif
+
+    string expectedOutput = get_file_contents(outfile.c_str());
+#ifdef CAP
+    ASSERT_EQ(expectedOutput, output);
+#endif
+}
+
+TEST_F(SudokuTest, Test020_xwing_stragegy) {
+
+#ifdef CAP
+    testing::internal::CaptureStdout();
+#endif
+
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.020.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.019.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DuplicatesStrategy s;
+        run = s.run(&board) || run;
+        OnlyOneStrategy s2;
+        run = s2.run(&board) || run;
+        OnlyOnALineStrategy s3;
+        //run = s3.run(&board) || run;
+        DoubleLinesStrategy s4;
+        //run |= s4.run(&board);
+    } while (run && limit > 0);
+
+    board.print(true);
+    printf("\n");
+    board.print();
+
+#ifdef CAP
+    std::string output = testing::internal::GetCapturedStdout();
+#endif
+
+    string expectedOutput = get_file_contents(outfile.c_str());
+#ifdef CAP
+    ASSERT_EQ(expectedOutput, output);
+#endif
+}
