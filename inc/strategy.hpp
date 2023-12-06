@@ -5,43 +5,46 @@ class Board;
 
 class SudokuStrategy {
 public:
-    SudokuStrategy() { };
-    virtual ~SudokuStrategy() { };
+  SudokuStrategy(){};
+  virtual ~SudokuStrategy(){};
 
-    virtual bool run(Board *board) = 0;
+  virtual bool run(Board *board) = 0;
 };
 
 /**
- * When a value is found, the same value cannot be in the same ninth, or the same row/column
+ * When a value is found, the same value cannot be in the same ninth, or the
+ * same row/column
  */
 class DuplicatesStrategy : public SudokuStrategy {
 public:
-    DuplicatesStrategy() { };
-    virtual ~DuplicatesStrategy() { };
+  DuplicatesStrategy(){};
+  virtual ~DuplicatesStrategy(){};
 
-    virtual bool run(Board *board);
+  virtual bool run(Board *board);
 };
 
 /**
- * When a value is only found from one cell in a ninth, no other value can be in that cell.
+ * When a value is only found from one cell in a ninth, no other value can be in
+ * that cell.
  */
 class OnlyOneStrategy : public SudokuStrategy {
 public:
-    OnlyOneStrategy() { };
-    virtual ~OnlyOneStrategy() { };
+  OnlyOneStrategy(){};
+  virtual ~OnlyOneStrategy(){};
 
-    virtual bool run(Board *board);
+  virtual bool run(Board *board);
 };
 
 /**
- * When a value is only found from one line in a ninth, the value cannot be on that line on other ninths.
+ * When a value is only found from one line in a ninth, the value cannot be on
+ * that line on other ninths.
  */
 class OnlyOnALineStrategy : public SudokuStrategy {
 public:
-    OnlyOnALineStrategy() { };
-    virtual ~OnlyOnALineStrategy() { };
+  OnlyOnALineStrategy(){};
+  virtual ~OnlyOnALineStrategy(){};
 
-    virtual bool run(Board *board);
+  virtual bool run(Board *board);
 };
 
 /**
@@ -51,24 +54,22 @@ public:
  */
 class DoubleLinesStrategy : public SudokuStrategy {
 public:
-    DoubleLinesStrategy() { };
-    virtual ~DoubleLinesStrategy() { };
+  DoubleLinesStrategy(){};
+  virtual ~DoubleLinesStrategy(){};
 
-    virtual bool run(Board *board);
+  virtual bool run(Board *board);
 };
 
-#if 0
 /**
  * When a full line needs a number, that number will be the only
  * possible value even if other values are otherwise possible.
  */
-class LineNeedsANumberStrategy : public SudokuStrategy {
+class BoxLinesStrategy : public SudokuStrategy {
 public:
-    LineNeedsANumberStrategy() { };
-    virtual ~LineNeedsANumberStrategy() { };
+  BoxLinesStrategy(){};
+  virtual ~BoxLinesStrategy(){};
 
-    virtual bool run(Board *board);
+  virtual bool run(Board *board);
 };
-#endif
 
 #endif // STRATEGY_HPP
