@@ -1,16 +1,18 @@
 #include "ninth.hpp"
+
 #include "cell.hpp"
-#include <vector>
 #include <cstdio>
+#include <vector>
 
 using std::vector;
 
 class Ninth::Private {
-public:
+   public:
     Private(const Coord &coordinate) : coord(coordinate) {
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 3; ++x) {
-                cells.push_back(std::make_unique<Cell>(Coord(coord.x * 3 + x, coord.y * 3 + y)));
+                cells.push_back(std::make_unique<Cell>(
+                    Coord(coord.x * 3 + x, coord.y * 3 + y)));
             }
         }
     }
@@ -23,11 +25,9 @@ Ninth::Ninth(const Coord &coordinate) {
     mPriv = std::make_unique<Private>(coordinate);
 }
 
-Ninth::~Ninth() {
-}
+Ninth::~Ninth() {}
 
-Cell *Ninth::at(uint32_t x, uint32_t y)
-{
+Cell *Ninth::at(uint32_t x, uint32_t y) {
     if ((x >= 9) || (y >= 9)) {
         printf("ninth::at nullptr");
         return nullptr;
@@ -35,38 +35,30 @@ Cell *Ninth::at(uint32_t x, uint32_t y)
     return mPriv->cells[(x % 3) + (y % 3) * 3].get();
 }
 
-Coord Ninth::getCoord() const
-{
-    return mPriv->coord;
-}
+Coord Ninth::getCoord() const { return mPriv->coord; }
 
-bool Ninth::hasValue(uint32_t value)
-{
-    for (const auto& c : mPriv->cells)
-    {
+bool Ninth::hasValue(uint32_t value) {
+    for (const auto &c : mPriv->cells) {
         if ((c->hasValue(value)) && (c->count() > 1)) return true;
     }
     return false;
 }
 
-bool Ninth::hasValueOnRow(uint32_t value, uint32_t y)
-{
+bool Ninth::hasValueOnRow(uint32_t value, uint32_t y) {
     for (uint32_t x = 0; x < 3; ++x) {
         if (at(x, y)->hasValue(value)) return true;
     }
     return false;
 }
 
-bool Ninth::hasValueOnCol(uint32_t value, uint32_t x)
-{
+bool Ninth::hasValueOnCol(uint32_t value, uint32_t x) {
     for (uint32_t y = 0; y < 3; ++y) {
         if (at(x, y)->hasValue(value)) return true;
     }
     return false;
 }
 
-vector<uint32_t> Ninth::hasValueOnRows(uint32_t value)
-{
+vector<uint32_t> Ninth::hasValueOnRows(uint32_t value) {
     vector<uint32_t> ret;
 
     for (uint32_t y = 0; y < 3; ++y) {
@@ -80,8 +72,7 @@ vector<uint32_t> Ninth::hasValueOnRows(uint32_t value)
     return ret;
 }
 
-std::vector<uint32_t> Ninth::hasValueOnCols(uint32_t value)
-{
+std::vector<uint32_t> Ninth::hasValueOnCols(uint32_t value) {
     vector<uint32_t> ret;
 
     for (uint32_t x = 0; x < 3; ++x) {
@@ -95,8 +86,7 @@ std::vector<uint32_t> Ninth::hasValueOnCols(uint32_t value)
     return ret;
 }
 
-bool Ninth::RemoveValueFromRows(uint32_t value, std::vector<uint32_t> rows)
-{
+bool Ninth::RemoveValueFromRows(uint32_t value, std::vector<uint32_t> rows) {
     bool ret = false;
     for (auto y : rows) {
         for (uint32_t x = 0; x < 3; ++x) {
@@ -109,8 +99,7 @@ bool Ninth::RemoveValueFromRows(uint32_t value, std::vector<uint32_t> rows)
     return ret;
 }
 
-bool Ninth::RemoveValueFromCols(uint32_t value, std::vector<uint32_t> cols)
-{
+bool Ninth::RemoveValueFromCols(uint32_t value, std::vector<uint32_t> cols) {
     bool ret = false;
     for (auto x : cols) {
         for (uint32_t y = 0; y < 3; ++y) {

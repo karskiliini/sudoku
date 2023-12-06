@@ -2,13 +2,14 @@
 #define NINTH_HPP
 
 #include "coord.hpp"
+
 #include <memory>
 #include <vector>
 
 class Cell;
 
 class Ninth {
-public:
+   public:
     class Private;
     Ninth(const Coord &coordinate);
     ~Ninth();
@@ -27,8 +28,8 @@ public:
     bool RemoveValueFromRows(uint32_t value, std::vector<uint32_t> rows);
     bool RemoveValueFromCols(uint32_t value, std::vector<uint32_t> cols);
 
-private:
+   private:
     std::unique_ptr<Private> mPriv;
 };
 
-#endif // NINTH_HPP
+#endif  // NINTH_HPP

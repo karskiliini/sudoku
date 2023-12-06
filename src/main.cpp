@@ -1,15 +1,12 @@
-
 #include "board.hpp"
 #include "strategy.hpp"
-#include <string>
 #include <iostream>
+#include <string>
 
 using std::string;
 
 int main(int argc, const char *argv[]) {
-
-    if (argc < 2)
-    {
+    if (argc < 2) {
         std::cout << "Error: input filename must be given.\n";
         return -1;
     }
@@ -35,8 +32,7 @@ int main(int argc, const char *argv[]) {
         } while (run && limit > 0);
 
         board.print();
-    }
-    catch(...) {
+    } catch (...) {
         std::cout << "Exception caught, abort.\n";
     }
     return 0;

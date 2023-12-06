@@ -4,11 +4,11 @@
 class Board;
 
 class SudokuStrategy {
-public:
-  SudokuStrategy(){};
-  virtual ~SudokuStrategy(){};
+   public:
+    SudokuStrategy(){};
+    virtual ~SudokuStrategy(){};
 
-  virtual bool run(Board *board) = 0;
+    virtual bool run(Board *board) = 0;
 };
 
 /**
@@ -16,11 +16,11 @@ public:
  * same row/column
  */
 class DuplicatesStrategy : public SudokuStrategy {
-public:
-  DuplicatesStrategy(){};
-  virtual ~DuplicatesStrategy(){};
+   public:
+    DuplicatesStrategy(){};
+    virtual ~DuplicatesStrategy(){};
 
-  virtual bool run(Board *board);
+    virtual bool run(Board *board);
 };
 
 /**
@@ -28,11 +28,11 @@ public:
  * that cell.
  */
 class OnlyOneStrategy : public SudokuStrategy {
-public:
-  OnlyOneStrategy(){};
-  virtual ~OnlyOneStrategy(){};
+   public:
+    OnlyOneStrategy(){};
+    virtual ~OnlyOneStrategy(){};
 
-  virtual bool run(Board *board);
+    virtual bool run(Board *board);
 };
 
 /**
@@ -40,11 +40,11 @@ public:
  * that line on other ninths.
  */
 class OnlyOnALineStrategy : public SudokuStrategy {
-public:
-  OnlyOnALineStrategy(){};
-  virtual ~OnlyOnALineStrategy(){};
+   public:
+    OnlyOnALineStrategy(){};
+    virtual ~OnlyOnALineStrategy(){};
 
-  virtual bool run(Board *board);
+    virtual bool run(Board *board);
 };
 
 /**
@@ -53,11 +53,11 @@ public:
  * the value cannot be on those lines on the third ninths.
  */
 class DoubleLinesStrategy : public SudokuStrategy {
-public:
-  DoubleLinesStrategy(){};
-  virtual ~DoubleLinesStrategy(){};
+   public:
+    DoubleLinesStrategy(){};
+    virtual ~DoubleLinesStrategy(){};
 
-  virtual bool run(Board *board);
+    virtual bool run(Board *board);
 };
 
 /**
@@ -65,11 +65,11 @@ public:
  * possible value even if other values are otherwise possible.
  */
 class BoxLinesStrategy : public SudokuStrategy {
-public:
-  BoxLinesStrategy(){};
-  virtual ~BoxLinesStrategy(){};
+   public:
+    BoxLinesStrategy(){};
+    virtual ~BoxLinesStrategy(){};
 
-  virtual bool run(Board *board);
+    virtual bool run(Board *board);
 };
 
-#endif // STRATEGY_HPP
+#endif  // STRATEGY_HPP

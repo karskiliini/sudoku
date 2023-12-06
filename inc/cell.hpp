@@ -2,11 +2,12 @@
 #define CELL_HPP
 
 #include "coord.hpp"
+
 #include <memory>
 #include <vector>
 
 class Cell {
-public:
+   public:
     class Private;
 
     Cell(const Coord &coordinate);
@@ -24,8 +25,8 @@ public:
     void Print() const;
     void print(uint32_t row) const;
 
-private:
+   private:
     std::unique_ptr<Private> mPriv;
 };
 
-#endif // CELL_HPP
+#endif  // CELL_HPP
