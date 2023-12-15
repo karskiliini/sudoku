@@ -17,8 +17,23 @@ using std::string;
 #endif
 
 class SudokuTest : public testing::Test {
+   public:
+    SudokuTest() {}
+
+    std::string expectedOutput;
+
    protected:
-    void SetUp() override {}
+    void SetUp() override {
+#ifdef CAP
+        testing::internal::CaptureStdout();
+#endif
+    }
+    void TearDown() override {
+#ifdef CAP
+        std::string output = testing::internal::GetCapturedStdout();
+        ASSERT_EQ(expectedOutput, output);
+#endif
+    }
 };
 
 std::string get_file_contents(const char *filename) {
@@ -47,8 +62,6 @@ TEST_F(SudokuTest, Coord) {
 }
 
 TEST_F(SudokuTest, Test001) {
-    testing::internal::CaptureStdout();
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.001.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.001.output";
 
@@ -56,18 +69,10 @@ TEST_F(SudokuTest, Test001) {
     Board board(filename);
 
     board.print();
-
-    std::string output = testing::internal::GetCapturedStdout();
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-
-    ASSERT_EQ(expectedOutput, output);
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test002) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
     string infile = string(ROOT_DIR) + "/test/ref/testcase.002.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.002.output";
 
@@ -95,20 +100,10 @@ TEST_F(SudokuTest, Test002) {
         }
     }
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test003) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
     string infile = string(ROOT_DIR) + "/test/ref/testcase.003.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.003.output";
 
@@ -124,14 +119,7 @@ TEST_F(SudokuTest, Test003) {
 
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test004) {
@@ -142,8 +130,6 @@ TEST_F(SudokuTest, Test004) {
 
     DuplicatesStrategy s;
     s.run(&board);
-
-    // board.print();
 
     for (uint32_t x = 0; x < 3; ++x) {
         ASSERT_EQ(board.at(x, 4)->hasValue(1), false);
@@ -168,8 +154,6 @@ TEST_F(SudokuTest, Test004_2) {
     s.run(&board);
     OnlyOneStrategy s2;
     s2.run(&board);
-
-    // board.print();
 
     for (uint32_t x = 0; x < 3; ++x) {
         ASSERT_EQ(board.at(x, 4)->hasValue(1), false);
@@ -224,10 +208,6 @@ TEST_F(SudokuTest, Test004_3) {
 }
 
 TEST_F(SudokuTest, Test005) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.005.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.005.output";
 
@@ -242,21 +222,11 @@ TEST_F(SudokuTest, Test005) {
     s3.run(&board);
 
     board.print();
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
 
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test006) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.006.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.006.output";
 
@@ -271,21 +241,11 @@ TEST_F(SudokuTest, Test006) {
     s3.run(&board);
 
     board.print();
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
 
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test007) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.007.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.007.output";
 
@@ -298,29 +258,19 @@ TEST_F(SudokuTest, Test007) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
     } while (run && limit > 0);
 
     board.print();
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
 
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test008) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.008.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.008.output";
 
@@ -333,22 +283,16 @@ TEST_F(SudokuTest, Test008) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
     } while (run && limit > 0);
 
     board.print();
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
 
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test009) {
@@ -376,10 +320,6 @@ TEST_F(SudokuTest, Test009) {
 }
 
 TEST_F(SudokuTest, Test010) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.010.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.010.output";
 
@@ -387,21 +327,11 @@ TEST_F(SudokuTest, Test010) {
     Board board(filename);
 
     board.print();
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
 
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test011) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.011.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.011.output";
 
@@ -414,29 +344,19 @@ TEST_F(SudokuTest, Test011) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
     } while (run && limit > 0);
 
     board.print();
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
 
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test012) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.012.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.012.output";
 
@@ -449,29 +369,19 @@ TEST_F(SudokuTest, Test012) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
     } while (run && limit > 0);
 
     board.print();
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
 
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test013) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.013.output";
 
@@ -484,31 +394,20 @@ TEST_F(SudokuTest, Test013) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
     } while (run && limit > 0);
 
     board.print(true);
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test013_2) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.013.2.output";
 
@@ -521,11 +420,11 @@ TEST_F(SudokuTest, Test013_2) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
         DoubleLinesStrategy s4;
         run |= s4.run(&board);
     } while (run && limit > 0);
@@ -533,21 +432,10 @@ TEST_F(SudokuTest, Test013_2) {
     board.print(true);
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test013_3) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.013.output";
 
@@ -560,11 +448,11 @@ TEST_F(SudokuTest, Test013_3) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
         DoubleLinesStrategy s4;
         run |= s4.run(&board);
         BoxLinesStrategy s5;
@@ -574,23 +462,12 @@ TEST_F(SudokuTest, Test013_3) {
     board.print(true);
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test013_4) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
-    string outfile = string(ROOT_DIR) + "/test/ref/testcase.013.4.output";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.013_4.output";
 
     const char *filename = infile.c_str();
     Board board(filename);
@@ -601,37 +478,28 @@ TEST_F(SudokuTest, Test013_4) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
-        OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s2.run(&board);
+        OnlyOnALineStrategy s3;  // <- breaks here with s7
+        run |= s3.run(&board);
         DoubleLinesStrategy s4;
         run |= s4.run(&board);
         BoxLinesStrategy s5;
         run |= s5.run(&board);
         BoxLinesTwoValuesStrategy s6;
         run |= s6.run(&board);
+        DoubleNinthStrategy s7;
+        // run |= s7.run(&board);
     } while (run && limit > 0);
 
     board.print(true);
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test014) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.014.1.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.014.1.output";
 
@@ -647,27 +515,12 @@ TEST_F(SudokuTest, Test014) {
         run |= s4.run(&board);
     } while (run && limit > 0);
 
-#if 1
     board.print(true);
-#else
-    board.print();
-#endif
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test014_2) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.014.2.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.014.2.output";
 
@@ -683,27 +536,12 @@ TEST_F(SudokuTest, Test014_2) {
         run |= s4.run(&board);
     } while (run && limit > 0);
 
-#if 1
     board.print(true);
-#else
-    board.print();
-#endif
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test014_3) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.014.1.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.014.3.output";
 
@@ -726,29 +564,14 @@ TEST_F(SudokuTest, Test014_3) {
         run |= s4.run(&board);
     } while (run && limit > 0);
 
-#if 1
     board.print(true);
     printf("\n");
     board.print();
-#else
-    board.print();
-#endif
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test015) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile =
         string(ROOT_DIR) + "/test/ref/testcase.015_al_esgargot.input";
     string outfile =
@@ -763,11 +586,11 @@ TEST_F(SudokuTest, Test015) {
         run = false;
         limit--;
         DuplicatesStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
         OnlyOneStrategy s2;
-        run = s2.run(&board) || run;
+        run |= s2.run(&board);
         OnlyOnALineStrategy s3;
-        run = s3.run(&board) || run;
+        run |= s3.run(&board);
         DoubleLinesStrategy s4;
         run |= s4.run(&board);
     } while (run && limit > 0);
@@ -776,21 +599,10 @@ TEST_F(SudokuTest, Test015) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test016) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.016.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.016.output";
 
@@ -816,21 +628,10 @@ TEST_F(SudokuTest, Test016) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test017) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.017.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.017.output";
 
@@ -856,21 +657,10 @@ TEST_F(SudokuTest, Test017) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test018) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.018.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.018.output";
 
@@ -896,21 +686,10 @@ TEST_F(SudokuTest, Test018) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test019) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.019.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.019.output";
 
@@ -936,21 +715,10 @@ TEST_F(SudokuTest, Test019) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test019_2) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.018.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.018.output";
 
@@ -976,21 +744,10 @@ TEST_F(SudokuTest, Test019_2) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test020_box_strategy) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.020.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.020.output";
 
@@ -1013,21 +770,10 @@ TEST_F(SudokuTest, Test020_box_strategy) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test020_2_box_strategy) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.020.2.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.020.2.output";
 
@@ -1050,21 +796,10 @@ TEST_F(SudokuTest, Test020_2_box_strategy) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test021_box_values_strategy) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.020.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.020.output";
 
@@ -1089,21 +824,10 @@ TEST_F(SudokuTest, Test021_box_values_strategy) {
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }
 
 TEST_F(SudokuTest, Test022) {
-#ifdef CAP
-    testing::internal::CaptureStdout();
-#endif
-
     string infile = string(ROOT_DIR) + "/test/ref/testcase.022.input";
     string outfile = string(ROOT_DIR) + "/test/ref/testcase.022.output";
 
@@ -1125,19 +849,12 @@ TEST_F(SudokuTest, Test022) {
         run = false;
         limit--;
         DoubleNinthStrategy s;
-        run = s.run(&board) || run;
+        run |= s.run(&board);
     } while (run && limit > 0);
 
     board.print(true);
     printf("\n");
     board.print();
 
-#ifdef CAP
-    std::string output = testing::internal::GetCapturedStdout();
-#endif
-
-    string expectedOutput = get_file_contents(outfile.c_str());
-#ifdef CAP
-    ASSERT_EQ(expectedOutput, output);
-#endif
+    expectedOutput = get_file_contents(outfile.c_str());
 }

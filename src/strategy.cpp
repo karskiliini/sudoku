@@ -799,6 +799,7 @@ bool findDuplicatesInNinth(Ninth *n, uint32_t check, uint32_t check2,
     if (n->at(x, y)->hasValue(check) && n->at(x, y)->hasValue(check2)) {
         return true;
     }
+    return false;
 }
 
 bool DoubleNinthStrategy::run(Board *board) {
@@ -833,18 +834,26 @@ bool DoubleNinthStrategy::run(Board *board) {
                                         // failed, continue with next values
                                         fail = true;
                                     }
+                                } else if (n->at(x, y)->hasValue(check) ||
+                                           n->at(x, y)->hasValue(check2)) {
+                                    fail = true;
                                 }
                             }
                         }
                         // found suitable candidates
-                        if (!fail && found2) {
+                        if (!fail && found1 && found2) {
                             n->at(coord1)->RemoveAllBut({check, check2});
+#if 0
+                            board->print(true);
+                            board->print();
+#endif
                             n->at(coord2)->RemoveAllBut({check, check2});
                         }
                     }
                 }
             }
         }
-
+        modified |= run;
     } while (run);
+    return modified;
 }

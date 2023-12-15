@@ -39,8 +39,8 @@ bool Cell::Remove(uint32_t value) {
     auto it = std::find(mPriv->values.begin(), mPriv->values.end(), value);
     if (it != mPriv->values.end()) {
 #if 0
-        if ((mPriv->coord.x < 1) && (mPriv->coord.y < 1))
-            printf("Cell::Remove(x: %u y: %u) Value %u\n", mPriv->coord.x, mPriv->coord.y, value);
+        printf("Cell::Remove(x: %u y: %u) Value %u\n", mPriv->coord.x,
+               mPriv->coord.y, value);
 #endif
         mPriv->values.erase(it);
         if (mPriv->values.size() == 0) {
@@ -75,7 +75,6 @@ bool Cell::RemoveAllBut(uint32_t value) {
 }
 
 bool Cell::RemoveAllBut(vector<uint32_t> values) {
-    //
     bool ret = false;
     for (uint32_t value = 1; value <= 9; ++value) {
         bool skip = false;
@@ -85,7 +84,11 @@ bool Cell::RemoveAllBut(vector<uint32_t> values) {
                 break;
             }
         }
-        if (!skip) {
+        if (!skip && hasValue(value)) {
+#if 0
+            printf("remove at (%u %u) value %u \n", getCoord().x, getCoord().y,
+                   value);
+#endif
             ret |= Remove(value);
         }
     }
