@@ -19,7 +19,6 @@ using std::string;
 class SudokuTest : public testing::Test {
    protected:
     void SetUp() override {}
-    // void TearDown() override {}
 };
 
 std::string get_file_contents(const char *filename) {
@@ -1084,6 +1083,49 @@ TEST_F(SudokuTest, Test021_box_values_strategy) {
         BoxLinesTwoValuesStrategy s6;
         run |= s6.run(&board);
 
+    } while (run && limit > 0);
+
+    board.print(true);
+    printf("\n");
+    board.print();
+
+#ifdef CAP
+    std::string output = testing::internal::GetCapturedStdout();
+#endif
+
+    string expectedOutput = get_file_contents(outfile.c_str());
+#ifdef CAP
+    ASSERT_EQ(expectedOutput, output);
+#endif
+}
+
+TEST_F(SudokuTest, Test022) {
+#ifdef CAP
+    testing::internal::CaptureStdout();
+#endif
+
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.022.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.022.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    for (uint32_t i = 1; i <= 2; ++i) {
+        board.at(8, 6)->Remove(i);
+        for (uint32_t x = 6; x < 9; ++x) {
+            for (uint32_t y = 7; y < 9; ++y) {
+                board.at(x, y)->Remove(i);
+            }
+        }
+    }
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DoubleNinthStrategy s;
+        run = s.run(&board) || run;
     } while (run && limit > 0);
 
     board.print(true);

@@ -74,6 +74,24 @@ bool Cell::RemoveAllBut(uint32_t value) {
     return ret;
 }
 
+bool Cell::RemoveAllBut(vector<uint32_t> values) {
+    //
+    bool ret = false;
+    for (uint32_t value = 1; value <= 9; ++value) {
+        bool skip = false;
+        for (const auto &preserve : values) {
+            if (value == preserve) {
+                skip = true;
+                break;
+            }
+        }
+        if (!skip) {
+            ret |= Remove(value);
+        }
+    }
+    return ret;
+}
+
 int Cell::count() const {
 #if 0
     for (auto c : mPriv->values) {

@@ -14,6 +14,7 @@ class Ninth {
     Ninth(const Coord &coordinate);
     ~Ninth();
 
+    Cell *at(const Coord &coord);
     Cell *at(uint32_t x, uint32_t y);
     Coord getCoord() const;
 

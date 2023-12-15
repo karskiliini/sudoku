@@ -16,6 +16,7 @@ class Cell {
     void Set(uint32_t value);
     bool Remove(uint32_t value);
     bool RemoveAllBut(uint32_t value);
+    bool RemoveAllBut(std::vector<uint32_t> values);
     int count() const;
     uint32_t Value() const;
     std::vector<uint32_t> values() const;

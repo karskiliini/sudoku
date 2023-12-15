@@ -85,4 +85,16 @@ class BoxLinesTwoValuesStrategy : public SudokuStrategy {
     virtual bool run(Board *board);
 };
 
+/**
+ * When a two is found from only two cells in one ninth
+ * those two cells cannot have any other values.
+ */
+class DoubleNinthStrategy : public SudokuStrategy {
+public:
+    DoubleNinthStrategy() { };
+    virtual ~DoubleNinthStrategy() { };
+
+    virtual bool run(Board *board);
+};
+
 #endif  // STRATEGY_HPP

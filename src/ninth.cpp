@@ -27,6 +27,11 @@ Ninth::Ninth(const Coord &coordinate) {
 
 Ninth::~Ninth() {}
 
+Cell *Ninth::at(const Coord &coord) {
+    // route to the other call
+    return at(coord.x, coord.y);
+}
+
 Cell *Ninth::at(uint32_t x, uint32_t y) {
     if ((x >= 9) || (y >= 9)) {
         printf("ninth::at nullptr");

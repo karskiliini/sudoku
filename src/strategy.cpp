@@ -793,3 +793,58 @@ bool BoxLinesTwoValuesStrategy::run(Board *board) {
 
     return modified;
 }
+
+bool findDuplicatesInNinth(Ninth *n, uint32_t check, uint32_t check2,
+                           uint32_t x, uint32_t y) {
+    if (n->at(x, y)->hasValue(check) && n->at(x, y)->hasValue(check2)) {
+        return true;
+    }
+}
+
+bool DoubleNinthStrategy::run(Board *board) {
+    bool modified = false;
+    bool run;
+    do {
+        run = false;
+
+        for (uint32_t nx = 0; nx < 9; nx += 3) {
+            for (uint32_t ny = 0; ny < 9; ny += 3) {
+                auto n = board->getNinth({nx, ny});
+                // check for value 'check' and 'check2' in each cell
+                for (uint32_t check = 1; check <= 8; ++check) {
+                    for (uint32_t check2 = check + 1; check2 <= 9; ++check2) {
+                        bool found1 = false;
+                        bool found2 = false;
+                        Coord coord1{0, 0};
+                        Coord coord2{0, 0};
+                        bool fail = false;
+
+                        for (uint32_t x = 0; x < 3 && !fail; ++x) {
+                            for (uint32_t y = 0; y < 3 && !fail; ++y) {
+                                if (findDuplicatesInNinth(n, check, check2, x,
+                                                          y)) {
+                                    if (!found1) {
+                                        found1 = true;
+                                        coord1 = {x, y};
+                                    } else if (!found2) {
+                                        found2 = true;
+                                        coord2 = {x, y};
+                                    } else {
+                                        // failed, continue with next values
+                                        fail = true;
+                                    }
+                                }
+                            }
+                        }
+                        // found suitable candidates
+                        if (!fail && found2) {
+                            n->at(coord1)->RemoveAllBut({check, check2});
+                            n->at(coord2)->RemoveAllBut({check, check2});
+                        }
+                    }
+                }
+            }
+        }
+
+    } while (run);
+}
