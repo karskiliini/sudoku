@@ -97,4 +97,54 @@ public:
     virtual bool run(Board *board);
 };
 
+/**
+ * Chain strategies. A candidate (cell, digit) is a node. A strong link means
+ * "if A is false then B is true": the two candidates of a bivalue cell, or
+ * the only two places for a digit in a row, column or ninth. A weak link means
+ * "if A is true then B is false": two candidates in the same cell, or the same
+ * digit in two cells that share a unit. A chain alternating strong and weak
+ * links proves "A or B" for its two ends, which lets every candidate that
+ * would contradict both ends be removed. The three strategies below differ
+ * only in which links they are allowed to use.
+ */
+
+/**
+ * X-Chain / X-Cycle: single digit chains. Strong links are conjugate pairs
+ * (a digit possible in exactly two cells of a unit), weak links join the same
+ * digit across a unit. Covers simple coloring, X-Wing, Skyscraper and
+ * Two-String-Kite eliminations.
+ */
+class XChainStrategy : public SudokuStrategy {
+   public:
+    XChainStrategy(){};
+    virtual ~XChainStrategy(){};
+
+    virtual bool run(Board *board);
+};
+
+/**
+ * XY-Chain: chains through bivalue cells. Strong links are the two candidates
+ * of a bivalue cell, weak links join the same digit across a unit. Covers
+ * XY-Wing and its longer forms.
+ */
+class XYChainStrategy : public SudokuStrategy {
+   public:
+    XYChainStrategy(){};
+    virtual ~XYChainStrategy(){};
+
+    virtual bool run(Board *board);
+};
+
+/**
+ * Alternating Inference Chain: every strong and weak link type is allowed.
+ * Subsumes XChainStrategy and XYChainStrategy.
+ */
+class AlternatingInferenceChainStrategy : public SudokuStrategy {
+   public:
+    AlternatingInferenceChainStrategy(){};
+    virtual ~AlternatingInferenceChainStrategy(){};
+
+    virtual bool run(Board *board);
+};
+
 #endif  // STRATEGY_HPP

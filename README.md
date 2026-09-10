@@ -2,7 +2,12 @@
 Sudoku solver based on running different strategies on a given sudoku.
 
 # State of the project
-Currently the solver is not able to solve the most difficult sudokus due to not having the required advanced strategies in place yet.
+The solver has the basic single-unit strategies plus X-Chain, XY-Chain and
+Alternating Inference Chain strategies. That solves 121 of a 127 puzzle test
+corpus. The hardest published puzzles (AI Escargot, Golden Nugget, Platinum
+Blonde, ...) need forcing nets or backtracking, which are not implemented.
+See [docs/strategies.md](docs/strategies.md) for how every strategy works,
+how soundness is tested and what is missing.
 
 # Build Instructions
 ```

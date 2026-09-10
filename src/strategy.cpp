@@ -6,6 +6,7 @@
 #include "ninth.hpp"
 #include <assert.h>
 #include <cstdio>
+#include <deque>
 #include <exception>
 #include <set>
 #include <vector>
@@ -454,43 +455,15 @@ struct DoublesOnLine {
     uint32_t row_or_col;
 };
 
+struct ValuesOnLine;
+ValuesOnLine findValuesOnLine(const vector<Cell *> &line, uint32_t value1,
+                              uint32_t value2, const uint32_t row_or_col);
+
+// A "double": the value is possible in exactly two unsolved cells of the line
+// and is not already solved on the line. Same rules as findValuesOnLine with
+// one value, so it delegates to it.
 DoublesOnLine findDoubles(const vector<Cell *> &line, uint32_t value,
-                          const uint32_t row_or_col) {
-    DoublesOnLine ret;
-    uint32_t found1;
-    uint32_t found2;
-
-    for (uint32_t index1 = 0; index1 < line.size() - 1; ++index1) {
-        if (line[index1]->hasValue(value) && (line[index1]->count() > 1)) {
-            found1 = index1;
-            for (uint32_t index2 = index1 + 1; index2 < line.size(); ++index2) {
-                if (line[index2]->hasValue(value) &&
-                    (line[index2]->count() > 1)) {
-                    found2 = index2;
-
-                    for (uint32_t index3 = index2 + 1; index3 < line.size();
-                         ++index3) {
-                        if (line[index3]->hasValue(value)) {
-                            return ret;
-                        }
-                    }
-                    ret.found = true;
-                    ret.index1 = found1;
-                    ret.index2 = found2;
-                    ret.value = value;
-                    ret.row_or_col = row_or_col;
-#if 0
-          printf("findDoubles: found: true, index1: %u index2: %u value %u, "
-                 "row_or_col %u\n",
-                 found1, found2, value, row_or_col);
-#endif
-                    return ret;
-                }
-            }
-        }
-    }
-    return ret;
-}
+                          const uint32_t row_or_col);
 
 bool BoxLinesStrategy::run(Board *board) {
     constexpr uint32_t COUNT = 2;
@@ -657,6 +630,20 @@ ValuesOnLine findValuesOnLine(const vector<Cell *> &line, uint32_t value1,
         "row_or_col %u\n",
         ret.index1, ret.index2, value1, value2, row_or_col);
 #endif
+    return ret;
+}
+
+DoublesOnLine findDoubles(const vector<Cell *> &line, uint32_t value,
+                          const uint32_t row_or_col) {
+    DoublesOnLine ret;
+    const ValuesOnLine v = findValuesOnLine(line, value, value, row_or_col);
+    ret.found = v.found;
+    if (v.found) {
+        ret.index1 = v.index1;
+        ret.index2 = v.index2;
+        ret.value = value;
+        ret.row_or_col = row_or_col;
+    }
     return ret;
 }
 
@@ -852,4 +839,268 @@ bool DoubleNinthStrategy::run(Board *board) {
         modified |= run;
     } while (run);
     return modified;
+}
+
+// ---------------------------------------------------------------------------
+// Chain strategies
+// ---------------------------------------------------------------------------
+
+namespace {
+
+constexpr uint32_t kCells = 81;
+constexpr uint32_t kNodes = kCells * 9;
+
+inline uint32_t cellIndex(uint32_t x, uint32_t y) { return y * 9 + x; }
+inline uint32_t cellX(uint32_t cell) { return cell % 9; }
+inline uint32_t cellY(uint32_t cell) { return cell / 9; }
+inline uint32_t nodeId(uint32_t cell, uint32_t digit) {
+    return cell * 9 + (digit - 1);
+}
+inline uint32_t nodeCell(uint32_t node) { return node / 9; }
+inline uint32_t nodeDigit(uint32_t node) { return node % 9 + 1; }
+
+// true when two different cells share a row, a column or a ninth
+bool seesEachOther(uint32_t a, uint32_t b) {
+    if (a == b) return false;
+    const uint32_t ax = cellX(a), ay = cellY(a);
+    const uint32_t bx = cellX(b), by = cellY(b);
+    return (ax == bx) || (ay == by) ||
+           ((ax / 3 == bx / 3) && (ay / 3 == by / 3));
+}
+
+struct ChainLinks {
+    bool bivalueStrong;    // two candidates of a bivalue cell
+    bool conjugateStrong;  // the only two places for a digit in a unit
+    bool cellWeak;         // two different candidates of one cell
+    bool unitWeak;         // same digit in two cells of one unit
+};
+
+// Implication graph over the candidates of the current board state.
+//   strong[n]: nodes m with "n false => m true"
+//   weak[n]:   nodes m with "n true  => m false"
+// A strong link is always usable as a weak link, so strong[n] is a subset of
+// weak[n].
+class ChainGraph {
+   public:
+    ChainGraph(Board *board, const ChainLinks &links) : mBoard(board) {
+        present.assign(kNodes, false);
+        strong.assign(kNodes, {});
+        weak.assign(kNodes, {});
+
+        // A candidate counts only if its cell is unsolved and no cell that
+        // sees it is already solved with the same digit. This ignores stale
+        // candidates that DuplicatesStrategy has not removed yet, which would
+        // otherwise produce false strong links.
+        for (uint32_t cell = 0; cell < kCells; ++cell) {
+            Cell *c = board->at(cellX(cell), cellY(cell));
+            if (c->count() == 1) continue;
+            for (uint32_t digit = 1; digit <= 9; ++digit) {
+                if (!c->hasValue(digit)) continue;
+                bool solvedNearby = false;
+                for (uint32_t other = 0; other < kCells && !solvedNearby;
+                     ++other) {
+                    if (!seesEachOther(cell, other)) continue;
+                    Cell *o = board->at(cellX(other), cellY(other));
+                    solvedNearby = (o->count() == 1) && (o->Value() == digit);
+                }
+                present[nodeId(cell, digit)] = !solvedNearby;
+            }
+        }
+
+        if (links.bivalueStrong || links.cellWeak) {
+            for (uint32_t cell = 0; cell < kCells; ++cell) {
+                vector<uint32_t> digits;
+                for (uint32_t digit = 1; digit <= 9; ++digit) {
+                    if (present[nodeId(cell, digit)]) digits.push_back(digit);
+                }
+                for (uint32_t a : digits) {
+                    for (uint32_t b : digits) {
+                        if (a == b) continue;
+                        const uint32_t na = nodeId(cell, a);
+                        const uint32_t nb = nodeId(cell, b);
+                        if (links.bivalueStrong && digits.size() == 2) {
+                            addStrong(na, nb);
+                        } else if (links.cellWeak) {
+                            addWeak(na, nb);
+                        }
+                    }
+                }
+            }
+        }
+
+        if (links.conjugateStrong || links.unitWeak) {
+            for (uint32_t unit = 0; unit < 27; ++unit) {
+                const auto cells = unitCells(unit);
+                for (uint32_t digit = 1; digit <= 9; ++digit) {
+                    vector<uint32_t> places;
+                    for (uint32_t cell : cells) {
+                        if (present[nodeId(cell, digit)])
+                            places.push_back(cell);
+                    }
+                    for (uint32_t a : places) {
+                        for (uint32_t b : places) {
+                            if (a == b) continue;
+                            const uint32_t na = nodeId(a, digit);
+                            const uint32_t nb = nodeId(b, digit);
+                            if (links.conjugateStrong && places.size() == 2) {
+                                addStrong(na, nb);
+                            } else if (links.unitWeak) {
+                                addWeak(na, nb);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Everything that follows from assuming `start` is false (startTrue ==
+    // false) or true (startTrue == true), following alternating links.
+    void closure(uint32_t start, bool startTrue, vector<bool> &isTrue,
+                 vector<bool> &isFalse) const {
+        isTrue.assign(kNodes, false);
+        isFalse.assign(kNodes, false);
+        std::deque<std::pair<uint32_t, bool>> queue;
+        (startTrue ? isTrue : isFalse)[start] = true;
+        queue.push_back({start, startTrue});
+        while (!queue.empty()) {
+            const auto [node, truth] = queue.front();
+            queue.pop_front();
+            if (truth) {
+                for (uint32_t m : weak[node]) {
+                    if (isFalse[m]) continue;
+                    isFalse[m] = true;
+                    queue.push_back({m, false});
+                }
+            } else {
+                for (uint32_t m : strong[node]) {
+                    if (isTrue[m]) continue;
+                    isTrue[m] = true;
+                    queue.push_back({m, true});
+                }
+            }
+        }
+    }
+
+    vector<bool> present;
+    vector<vector<uint32_t>> strong;
+    vector<vector<uint32_t>> weak;
+
+   private:
+    void addStrong(uint32_t a, uint32_t b) {
+        strong[a].push_back(b);
+        addWeak(a, b);
+    }
+    void addWeak(uint32_t a, uint32_t b) {
+        for (uint32_t existing : weak[a]) {
+            if (existing == b) return;
+        }
+        weak[a].push_back(b);
+    }
+
+    // units 0-8 rows, 9-17 columns, 18-26 ninths
+    static vector<uint32_t> unitCells(uint32_t unit) {
+        vector<uint32_t> cells;
+        for (uint32_t i = 0; i < 9; ++i) {
+            if (unit < 9) {
+                cells.push_back(cellIndex(i, unit));
+            } else if (unit < 18) {
+                cells.push_back(cellIndex(unit - 9, i));
+            } else {
+                const uint32_t n = unit - 18;
+                cells.push_back(
+                    cellIndex((n % 3) * 3 + i % 3, (n / 3) * 3 + i / 3));
+            }
+        }
+        return cells;
+    }
+
+    Board *mBoard;
+};
+
+bool removeCandidate(Board *board, uint32_t cell, uint32_t digit) {
+    return board->at(cellX(cell), cellY(cell))->Remove(digit);
+}
+
+// Runs one pass: finds the first start node that yields eliminations, applies
+// all eliminations proven by chains from that node and returns true. Returns
+// false when no chain proves anything on the current board.
+bool runChainPass(Board *board, const ChainLinks &links) {
+    const ChainGraph graph(board, links);
+    vector<bool> isTrue;
+    vector<bool> isFalse;
+
+    for (uint32_t start = 0; start < kNodes; ++start) {
+        if (!graph.present[start]) continue;
+        const uint32_t c0 = nodeCell(start);
+        const uint32_t a = nodeDigit(start);
+        bool changed = false;
+
+        // "start is true => ... => start is false": start cannot be true.
+        graph.closure(start, true, isTrue, isFalse);
+        if (isFalse[start]) {
+            changed |= removeCandidate(board, c0, a);
+            if (changed) return true;
+        }
+
+        // "start is false => ... => end is true" proves "start or end".
+        graph.closure(start, false, isTrue, isFalse);
+        if (isTrue[start]) {
+            // start is true whatever we assume: place it.
+            changed |= board->at(cellX(c0), cellY(c0))
+                           ->RemoveAllBut(vector<uint32_t>{a});
+            if (changed) return true;
+        }
+
+        for (uint32_t end = 0; end < kNodes; ++end) {
+            if (!isTrue[end] || end == start) continue;
+            const uint32_t ck = nodeCell(end);
+            const uint32_t b = nodeDigit(end);
+
+            if (a == b) {
+                // type 1: the digit is in c0 or in ck, so nowhere that sees
+                // both.
+                for (uint32_t cell = 0; cell < kCells; ++cell) {
+                    if (cell == c0 || cell == ck) continue;
+                    if (!graph.present[nodeId(cell, a)]) continue;
+                    if (!seesEachOther(cell, c0) || !seesEachOther(cell, ck))
+                        continue;
+                    changed |= removeCandidate(board, cell, a);
+                }
+            } else if (c0 == ck) {
+                // the cell is a or b, nothing else.
+                changed |= board->at(cellX(c0), cellY(c0))
+                               ->RemoveAllBut(vector<uint32_t>{a, b});
+            } else if (seesEachOther(c0, ck)) {
+                // type 2: c0 is a or ck is b. Either way c0 is not b and ck
+                // is not a.
+                if (graph.present[nodeId(c0, b)])
+                    changed |= removeCandidate(board, c0, b);
+                if (graph.present[nodeId(ck, a)])
+                    changed |= removeCandidate(board, ck, a);
+            }
+        }
+        if (changed) return true;
+    }
+    return false;
+}
+
+bool runChains(Board *board, const ChainLinks &links) {
+    bool modified = false;
+    while (runChainPass(board, links)) modified = true;
+    return modified;
+}
+
+}  // namespace
+
+bool XChainStrategy::run(Board *board) {
+    return runChains(board, {false, true, false, true});
+}
+
+bool XYChainStrategy::run(Board *board) {
+    return runChains(board, {true, false, false, true});
+}
+
+bool AlternatingInferenceChainStrategy::run(Board *board) {
+    return runChains(board, {true, true, true, true});
 }

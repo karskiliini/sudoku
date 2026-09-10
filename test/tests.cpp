@@ -858,19 +858,10 @@ TEST_F(SudokuTest, Test022) {
 
     expectedOutput = get_file_contents(outfile.c_str());
 }
-// Run every strategy on the hard sudoku 013 and verify that no strategy
-// removes a value belonging to the known unique solution.
-TEST_F(SudokuTest, Test013_5_all_strategies_correct) {
-    string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
-    string outfile = string(ROOT_DIR) + "/test/ref/testcase.013_5.output";
-
-    const char *filename = infile.c_str();
-    Board board(filename);
-
-    const char *solution =
-        "984351627257469813613287594378692451429815736"
-        "561734982196573248832946175745128369";
-
+// Run every strategy in the usual order until nothing changes and check after
+// each strategy that no candidate belonging to the known unique solution has
+// been removed. Stops at the first violation so the report names the culprit.
+static void runAllStrategiesVerified(Board &board, const char *solution) {
     auto verify = [&](const char *strategy) {
         for (uint32_t y = 0; y < 9; ++y) {
             for (uint32_t x = 0; x < 9; ++x) {
@@ -890,25 +881,245 @@ TEST_F(SudokuTest, Test013_5_all_strategies_correct) {
         DuplicatesStrategy s;
         run = s.run(&board) || run;
         verify("DuplicatesStrategy");
+        if (testing::Test::HasFatalFailure()) return;
         OnlyOneStrategy s2;
         run = s2.run(&board) || run;
         verify("OnlyOneStrategy");
+        if (testing::Test::HasFatalFailure()) return;
         OnlyOnALineStrategy s3;
         run = s3.run(&board) || run;
         verify("OnlyOnALineStrategy");
+        if (testing::Test::HasFatalFailure()) return;
         DoubleLinesStrategy s4;
         run = s4.run(&board) || run;
         verify("DoubleLinesStrategy");
+        if (testing::Test::HasFatalFailure()) return;
         BoxLinesStrategy s5;
         run = s5.run(&board) || run;
         verify("BoxLinesStrategy");
+        if (testing::Test::HasFatalFailure()) return;
         BoxLinesTwoValuesStrategy s6;
         run = s6.run(&board) || run;
         verify("BoxLinesTwoValuesStrategy");
+        if (testing::Test::HasFatalFailure()) return;
         DoubleNinthStrategy s7;
         run = s7.run(&board) || run;
         verify("DoubleNinthStrategy");
+        if (testing::Test::HasFatalFailure()) return;
+        // chains are expensive: only when the cheaper strategies are stuck
+        if (run) continue;
+        XChainStrategy s8;
+        run = s8.run(&board) || run;
+        verify("XChainStrategy");
+        if (testing::Test::HasFatalFailure()) return;
+        XYChainStrategy s9;
+        run = s9.run(&board) || run;
+        verify("XYChainStrategy");
+        if (testing::Test::HasFatalFailure()) return;
+        AlternatingInferenceChainStrategy s10;
+        run = s10.run(&board) || run;
+        verify("AlternatingInferenceChainStrategy");
+        if (testing::Test::HasFatalFailure()) return;
     } while (run && limit > 0);
+}
+
+static uint32_t solvedCells(Board &board) {
+    uint32_t solved = 0;
+    for (uint32_t y = 0; y < 9; ++y) {
+        for (uint32_t x = 0; x < 9; ++x) {
+            if (board.at(x, y)->count() == 1) ++solved;
+        }
+    }
+    return solved;
+}
+
+// Run every strategy on the hard sudoku 013 and verify that no strategy
+// removes a value belonging to the known unique solution.
+TEST_F(SudokuTest, Test013_5_all_strategies_correct) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.013_5.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "984351627257469813613287594378692451429815736"
+        "561734982196573248832946175745128369";
+
+    runAllStrategiesVerified(board, solution);
+    EXPECT_EQ(81u, solvedCells(board));
+
+    board.print();
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}
+
+// The puzzles below are well known "very hard" sudokus that need techniques
+// (chains, forcing nets or backtracking) the strategies do not implement.
+// They are here to guarantee two things: the strategies stay sound on them
+// (never remove a solution value) and the solver stops instead of looping.
+// The golden outputs record how far the strategies get; they are expected
+// to change when a new strategy makes more progress.
+
+// AI Escargot (Arto Inkala, 2006)
+TEST_F(SudokuTest, Test023_ai_escargot_sound_but_unsolved) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.023.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.023.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "162857493534129678789643521475312986913586742"
+        "628794135356478219241935867897261354";
+
+    runAllStrategiesVerified(board, solution);
+    EXPECT_LT(solvedCells(board), 81u);
+
+    board.print();
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}
+
+// "World's hardest sudoku" (Arto Inkala, 2012)
+TEST_F(SudokuTest, Test024_inkala_2012_sound_but_unsolved) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.024.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.024.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "812753649943682175675491283154237896369845721"
+        "287169534521974368438526917796318452";
+
+    runAllStrategiesVerified(board, solution);
+    EXPECT_LT(solvedCells(board), 81u);
+
+    board.print();
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}
+
+// Golden Nugget
+TEST_F(SudokuTest, Test025_golden_nugget_sound_but_unsolved) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.025.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.025.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "751846239892371465643259871238197546974562318"
+        "165438927319684752527913684486725193";
+
+    runAllStrategiesVerified(board, solution);
+    EXPECT_LT(solvedCells(board), 81u);
+
+    board.print();
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}
+
+// Platinum Blonde
+TEST_F(SudokuTest, Test026_platinum_blonde_sound_but_unsolved) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.026.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.026.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "839465712146782953752391486391824675564173829"
+        "287659341628537194913248567475916238";
+
+    runAllStrategiesVerified(board, solution);
+    EXPECT_LT(solvedCells(board), 81u);
+
+    board.print();
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}
+
+// X-Chain alone must reproduce the X-Wing eliminations of testcase 020 that
+// BoxLinesStrategy finds in Test020_box_strategy.
+TEST_F(SudokuTest, Test027_x_chain) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.020.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.027.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    DuplicatesStrategy s;
+    s.run(&board);
+    XChainStrategy chain;
+    EXPECT_TRUE(chain.run(&board));
+    BoxLinesStrategy xwing;
+    EXPECT_FALSE(xwing.run(&board)) << "X-Chain left an X-Wing behind";
+
+    board.print(true);
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}
+
+// testcase 011 stalls with the basic strategies (Test011); an XY-Chain finishes
+// it.
+TEST_F(SudokuTest, Test028_xy_chain) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.011.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.028.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "531672984649831257827549613374928561185763429"
+        "962415378753284196218396745496157832";
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DuplicatesStrategy s;
+        run = s.run(&board) || run;
+        OnlyOneStrategy s2;
+        run = s2.run(&board) || run;
+        OnlyOnALineStrategy s3;
+        run = s3.run(&board) || run;
+        if (run) continue;
+        XYChainStrategy chain;
+        run = chain.run(&board) || run;
+    } while (run && limit > 0);
+
+    for (uint32_t y = 0; y < 9; ++y) {
+        for (uint32_t x = 0; x < 9; ++x) {
+            const uint32_t v = solution[y * 9 + x] - '0';
+            EXPECT_TRUE(board.at(x, y)->hasValue(v))
+                << "wrong value at x=" << x << " y=" << y;
+        }
+    }
+    EXPECT_EQ(81u, solvedCells(board));
+
+    board.print();
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}
+
+// testcase 029 needs an alternating inference chain that mixes bivalue-cell
+// and conjugate-pair links: neither X-Chain nor XY-Chain alone solves it.
+TEST_F(SudokuTest, Test029_alternating_inference_chain) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.029.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.029.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "162754398439628571587139462651347829748592136"
+        "293861754876215943314976285925483617";
+
+    runAllStrategiesVerified(board, solution);
+    EXPECT_EQ(81u, solvedCells(board));
 
     board.print();
 
