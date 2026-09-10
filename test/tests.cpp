@@ -858,3 +858,59 @@ TEST_F(SudokuTest, Test022) {
 
     expectedOutput = get_file_contents(outfile.c_str());
 }
+// Run every strategy on the hard sudoku 013 and verify that no strategy
+// removes a value belonging to the known unique solution.
+TEST_F(SudokuTest, Test013_5_all_strategies_correct) {
+    string infile = string(ROOT_DIR) + "/test/ref/testcase.013.input";
+    string outfile = string(ROOT_DIR) + "/test/ref/testcase.013_5.output";
+
+    const char *filename = infile.c_str();
+    Board board(filename);
+
+    const char *solution =
+        "984351627257469813613287594378692451429815736"
+        "561734982196573248832946175745128369";
+
+    auto verify = [&](const char *strategy) {
+        for (uint32_t y = 0; y < 9; ++y) {
+            for (uint32_t x = 0; x < 9; ++x) {
+                const uint32_t v = solution[y * 9 + x] - '0';
+                ASSERT_TRUE(board.at(x, y)->hasValue(v))
+                    << strategy << " removed correct value " << v
+                    << " from cell x=" << x << " y=" << y;
+            }
+        }
+    };
+
+    bool run;
+    int limit = 100;
+    do {
+        run = false;
+        limit--;
+        DuplicatesStrategy s;
+        run = s.run(&board) || run;
+        verify("DuplicatesStrategy");
+        OnlyOneStrategy s2;
+        run = s2.run(&board) || run;
+        verify("OnlyOneStrategy");
+        OnlyOnALineStrategy s3;
+        run = s3.run(&board) || run;
+        verify("OnlyOnALineStrategy");
+        DoubleLinesStrategy s4;
+        run = s4.run(&board) || run;
+        verify("DoubleLinesStrategy");
+        BoxLinesStrategy s5;
+        run = s5.run(&board) || run;
+        verify("BoxLinesStrategy");
+        BoxLinesTwoValuesStrategy s6;
+        run = s6.run(&board) || run;
+        verify("BoxLinesTwoValuesStrategy");
+        DoubleNinthStrategy s7;
+        run = s7.run(&board) || run;
+        verify("DoubleNinthStrategy");
+    } while (run && limit > 0);
+
+    board.print();
+
+    expectedOutput = get_file_contents(outfile.c_str());
+}

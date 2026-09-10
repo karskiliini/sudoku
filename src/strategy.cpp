@@ -619,48 +619,44 @@ struct ValuesOnLine {
 
 ValuesOnLine findValuesOnLine(const vector<Cell *> &line, uint32_t value1,
                               uint32_t value2, const uint32_t row_or_col) {
+    // A "hidden pair" on the line: value1 and value2 are both still open on
+    // the line and together they are possible in exactly two cells. Every
+    // cell of the line has to be examined, including the ones between the
+    // two candidate cells, otherwise a value that is also possible elsewhere
+    // is mistaken for a pair.
     ValuesOnLine ret;
-    uint32_t found1;
-    uint32_t found2;
+    vector<uint32_t> positions;
+    bool foundValue1 = false;
+    bool foundValue2 = false;
 
-    for (uint32_t index1 = 0; index1 < line.size() - 1; ++index1) {
-        if ((line[index1]->hasValue(value1) ||
-             line[index1]->hasValue(value2)) &&
-            (line[index1]->count() > 1)) {
-            found1 = index1;
-            const bool foundValue1 = line[index1]->hasValue(value1);
-            const uint32_t check = (foundValue1) ? value2 : value1;
-            ret.value1 = (foundValue1) ? value1 : value2;
+    for (uint32_t index = 0; index < line.size(); ++index) {
+        const bool has1 = line[index]->hasValue(value1);
+        const bool has2 = line[index]->hasValue(value2);
+        if (!has1 && !has2) continue;
 
-            for (uint32_t index2 = index1 + 1; index2 < line.size(); ++index2) {
-                if (line[index2]->hasValue(check) &&
-                    (line[index2]->count() > 1)) {
-                    found2 = index2;
-                    ret.value2 = check;
+        // the value is already solved on this line, it cannot form a pair
+        if (line[index]->count() == 1) return ret;
 
-                    for (uint32_t index3 = index2 + 1; index3 < line.size();
-                         ++index3) {
-                        if (line[index3]->hasValue(value1) ||
-                            line[index3]->hasValue(value2)) {
-                            return ret;
-                        }
-                    }
-                    ret.found = true;
-                    ret.index1 = found1;
-                    ret.index2 = found2;
-                    ret.row_or_col = row_or_col;
-#if 0
-                    printf(
-                        "findValuesOnLine: found: true, index1: %u index2: %u "
-                        "value1 %u, value2 %u "
-                        "row_or_col %u\n",
-                        found1, found2, value1, value2, row_or_col);
-#endif
-                    return ret;
-                }
-            }
-        }
+        positions.push_back(index);
+        foundValue1 |= has1;
+        foundValue2 |= has2;
     }
+
+    if ((positions.size() != 2) || !foundValue1 || !foundValue2) return ret;
+
+    ret.found = true;
+    ret.index1 = positions[0];
+    ret.index2 = positions[1];
+    ret.value1 = value1;
+    ret.value2 = value2;
+    ret.row_or_col = row_or_col;
+#if 0
+    printf(
+        "findValuesOnLine: found: true, index1: %u index2: %u "
+        "value1 %u, value2 %u "
+        "row_or_col %u\n",
+        ret.index1, ret.index2, value1, value2, row_or_col);
+#endif
     return ret;
 }
 
@@ -743,7 +739,7 @@ bool BoxLinesTwoValuesStrategy::run(Board *board) {
                     if (found1.found) {
                         for (uint32_t y2 = y + 1; y2 < (9 - (COUNT - 2));
                              ++y2) {
-                            auto row2 = board->getCol(y2);
+                            auto row2 = board->getRow(y2);
                             found2 = findValuesOnLine(row2, check1, check2, y2);
                             if (found2.found &&
                                 (found1.index1 == found2.index1) &&
@@ -770,13 +766,13 @@ bool BoxLinesTwoValuesStrategy::run(Board *board) {
                                                    found2.index1);
                                             assert(found1.index2 ==
                                                    found2.index2);
-                                            run |= board->at(y3, found1.index1)
+                                            run |= board->at(found1.index1, y3)
                                                        ->Remove(found1.value1);
-                                            run |= board->at(y3, found1.index2)
+                                            run |= board->at(found1.index2, y3)
                                                        ->Remove(found1.value1);
-                                            run |= board->at(y3, found1.index1)
+                                            run |= board->at(found1.index1, y3)
                                                        ->Remove(found1.value2);
-                                            run |= board->at(y3, found1.index2)
+                                            run |= board->at(found1.index2, y3)
                                                        ->Remove(found1.value2);
                                         }
                                     }
