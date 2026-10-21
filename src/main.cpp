@@ -34,6 +34,7 @@ int main(int argc, const char *argv[]) {
         board.print();
     } catch (...) {
         std::cout << "Exception caught, abort.\n";
+        return 1;
     }
     return 0;
 }
