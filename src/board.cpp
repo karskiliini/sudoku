@@ -5,6 +5,7 @@
 #include <fstream>
 #include <iostream>
 #include <string>
+#include <stdexcept>
 #include <vector>
 
 using std::string;
@@ -92,11 +93,14 @@ Board::Board(const char *filename) {
         throw std::exception();
     }
 
+    // A puzzle needs only 81 cells. Bound untrusted files while reading,
+    // including a single oversized line, before any large allocation occurs.
+    constexpr std::size_t maxInputBytes = 64 * 1024;
     std::string buffer;
-    std::string line;
-    while (fs) {
-        std::getline(fs, line);
-        buffer += line;
+    char c;
+    while (fs.get(c)) {
+        if (buffer.size() >= maxInputBytes) throw std::length_error("Puzzle input too large");
+        buffer.push_back(c);
     }
     mPriv = std::make_unique<Private>(buffer);
 }

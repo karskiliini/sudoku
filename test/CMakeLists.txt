@@ -30,3 +30,8 @@ target_compile_definitions(TestApp PRIVATE ROOT_DIR="${CMAKE_SOURCE_DIR}")
 
 include(GoogleTest)
 gtest_discover_tests(TestApp)
+
+find_package(Python3 COMPONENTS Interpreter)
+if(Python3_Interpreter_FOUND)
+  add_test(NAME InputSecurity COMMAND ${Python3_EXECUTABLE} ${CMAKE_CURRENT_SOURCE_DIR}/input_security.py $<TARGET_FILE:solverApp>)
+endif()
