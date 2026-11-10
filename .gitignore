@@ -1,3 +1,6 @@
 CMakeCache.txt
 build/
 CMakeFiles
+
+# Claude Code local permissions (may contain secrets)
+**/.claude/settings.local.json
